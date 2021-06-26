@@ -11,15 +11,8 @@ public class EnrollControl {
         checkNotPassedCoursesBefore(s, offerings);
         checkPassedPrerequisites(s, offerings);
         checkExamTimeCollisions(offerings);
-        for (Offering o : offerings) {
-            for (Offering o2 : offerings) {
-                if (o == o2)
-                    continue;
-                if (o.getCourse().equals(o2.getCourse()))
-                    throw new EnrollmentRulesViolationException(String.format("%s is requested to be taken twice", o.getCourse().getName()));
-            }
-        }
-		int unitsRequested = 0;
+        checkTwiceCourseTakings(offerings);
+        int unitsRequested = 0;
 		for (Offering o : offerings)
 			unitsRequested += o.getCourse().getUnits();
 		double points = 0;
@@ -38,6 +31,17 @@ public class EnrollControl {
 		for (Offering o : offerings)
 			s.takeCourse(o.getCourse(), o.getSection());
 	}
+
+    private void checkTwiceCourseTakings(List<Offering> offerings) throws EnrollmentRulesViolationException {
+        for (Offering o : offerings) {
+            for (Offering o2 : offerings) {
+                if (o == o2)
+                    continue;
+                if (o.getCourse().equals(o2.getCourse()))
+                    throw new EnrollmentRulesViolationException(String.format("%s is requested to be taken twice", o.getCourse().getName()));
+            }
+        }
+    }
 
     private void checkExamTimeCollisions(List<Offering> offerings) throws EnrollmentRulesViolationException {
         for (Offering o : offerings) {
