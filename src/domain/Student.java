@@ -7,27 +7,18 @@ import java.util.Map;
 public class Student {
 	private String id;
 	private String name;
-
-	static class CourseSection {
-        CourseSection(Course course, int section) {
-            this.course = course;
-            this.section = section;
-        }
-        Course course;
-	    int section;
-    }
 	private Map<Term, Map<Course, Double>> transcript;
-	private List<CourseSection> currentTerm;
+	private List<CourseSectionExam> currentTerm;
 
 	public Student(String id, String name) {
 		this.id = id;
 		this.name = name;
 		this.transcript = new HashMap<>();
-		this.currentTerm = new ArrayList<>();
+		this.currentTerm = new ArrayList<CourseSectionExam>();
 	}
 	
 	public void takeCourse(Course c, int section) {
-		currentTerm.add(new CourseSection(c, section));
+		currentTerm.add(new CourseSectionExam(c, null, section));
 	}
 
 	public Map<Term, Map<Course, Double>> getTranscript() {
@@ -40,7 +31,7 @@ public class Student {
 	    transcript.get(term).put(course, grade);
     }
 
-    public List<CourseSection> getCurrentTerm() {
+    public List<CourseSectionExam> getCurrentTerm() {
         return currentTerm;
     }
 
