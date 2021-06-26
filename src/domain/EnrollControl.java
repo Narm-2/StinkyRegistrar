@@ -16,10 +16,16 @@ public class EnrollControl {
                     continue;
                 if (o.getExamTime().equals(o2.getExamTime()))
                     throw new EnrollmentRulesViolationException(String.format("Two offerings %s and %s have the same exam time", o, o2));
+            }
+		}
+        for (Offering o : offerings) {
+            for (Offering o2 : offerings) {
+                if (o == o2)
+                    continue;
                 if (o.getCourse().equals(o2.getCourse()))
                     throw new EnrollmentRulesViolationException(String.format("%s is requested to be taken twice", o.getCourse().getName()));
             }
-		}
+        }
 		int unitsRequested = 0;
 		for (Offering o : offerings)
 			unitsRequested += o.getCourse().getUnits();
