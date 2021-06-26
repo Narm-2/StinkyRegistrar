@@ -8,13 +8,8 @@ import domain.exceptions.EnrollmentRulesViolationException;
 public class EnrollControl {
 	public void enroll(Student s, List<Offering> offerings) throws EnrollmentRulesViolationException {
         Map<Term, Map<Course, Double>> transcript = s.getTranscript();
-		for (Offering o : offerings) {
-            for (Map.Entry<Term, Map<Course, Double>> tr : transcript.entrySet()) {
-                for (Map.Entry<Course, Double> r : tr.getValue().entrySet()) {
-                    if (r.getKey().equals(o.getCourse()) && r.getValue() >= 10)
-                        throw new EnrollmentRulesViolationException(String.format("The student has already passed %s", o.getCourse().getName()));
-                }
-            }
+        checkNotPassedCoursesBefore(s, offerings);
+        for (Offering o : offerings) {
 			List<Course> prereqs = o.getCourse().getPrerequisites();
 			nextPre:
 			for (Course pre : prereqs) {
@@ -54,4 +49,16 @@ public class EnrollControl {
 		for (Offering o : offerings)
 			s.takeCourse(o.getCourse(), o.getSection());
 	}
+
+	private void checkNotPassedCoursesBefore(Student s, List<Offering> offerings) throws EnrollmentRulesViolationException {
+        Map<Term, Map<Course, Double>> transcript = s.getTranscript();
+        for (Offering o : offerings) {
+            for (Map.Entry<Term, Map<Course, Double>> tr : transcript.entrySet()) {
+                for (Map.Entry<Course, Double> r : tr.getValue().entrySet()) {
+                    if (r.getKey().equals(o.getCourse()) && r.getValue() >= 10)
+                        throw new EnrollmentRulesViolationException(String.format("The student has already passed %s", o.getCourse().getName()));
+                }
+            }
+        }
+    }
 }
