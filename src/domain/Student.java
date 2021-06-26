@@ -8,17 +8,17 @@ public class Student {
 	private String id;
 	private String name;
 	private Map<Term, Map<Course, Double>> transcript;
-	private List<CourseSectionExam> currentTerm;
+	private List<Offering> currentTerm;
 
 	public Student(String id, String name) {
 		this.id = id;
 		this.name = name;
 		this.transcript = new HashMap<>();
-		this.currentTerm = new ArrayList<CourseSectionExam>();
+		this.currentTerm = new ArrayList<Offering>();
 	}
 	
 	public void takeCourse(Course c, int section) {
-		currentTerm.add(new CourseSectionExam(c, null, section));
+		currentTerm.add(new Offering(c, null, section));
 	}
 
 	public Map<Term, Map<Course, Double>> getTranscript() {
@@ -31,7 +31,7 @@ public class Student {
 	    transcript.get(term).put(course, grade);
     }
 
-    public List<CourseSectionExam> getCurrentTerm() {
+    public List<Offering> getCurrentTerm() {
         return currentTerm;
     }
 

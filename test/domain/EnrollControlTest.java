@@ -43,19 +43,19 @@ public class EnrollControlTest {
 		bebe = new Student("1", "Bebe");
 	}
 
-	private ArrayList<CourseSectionExam> requestedOfferings(Course...courses) {
+	private ArrayList<Offering> requestedOfferings(Course...courses) {
 		Calendar cal = Calendar.getInstance();
-		ArrayList<CourseSectionExam> result = new ArrayList<>();
+		ArrayList<Offering> result = new ArrayList<>();
 		for (Course course : courses) {
 			cal.add(Calendar.DATE, 1);
-			result.add(new CourseSectionExam(course, cal.getTime()));
+			result.add(new Offering(course, cal.getTime()));
 		}
 		return result;
 	}
 
 	private boolean hasTaken(Student s, Course...courses) {
 	    Set<Course> coursesTaken = new HashSet<>();
-		for (CourseSectionExam cs : s.getCurrentTerm())
+		for (Offering cs : s.getCurrentTerm())
 				coursesTaken.add(cs.getCourse());
 		for (Course course : courses) {
 			if (!coursesTaken.contains(course))
@@ -134,9 +134,9 @@ public class EnrollControlTest {
 		Calendar cal = Calendar.getInstance();
 		new EnrollControl().enroll(bebe,
 				List.of(
-					new CourseSectionExam(phys1, cal.getTime()),
-					new CourseSectionExam(math1, cal.getTime()),
-					new CourseSectionExam(phys1, cal.getTime())
+					new Offering(phys1, cal.getTime()),
+					new Offering(math1, cal.getTime()),
+					new Offering(phys1, cal.getTime())
 				));
 	}
 
