@@ -12,17 +12,21 @@ public class EnrollControl {
         checkPassedPrerequisites(s, offerings);
         checkExamTimeCollisions(offerings);
         checkTwiceCourseTakings(offerings);
-        int unitsRequested = 0;
-		for (Offering o : offerings)
-			unitsRequested += o.getCourse().getUnits();
-		double gpa = s.getGPA();
-		if ((gpa < 12 && unitsRequested > 14) ||
-				(gpa < 16 && unitsRequested > 16) ||
-				(unitsRequested > 20))
-			throw new EnrollmentRulesViolationException(String.format("Number of units (%d) requested does not match GPA of %f", unitsRequested, gpa));
-		for (Offering o : offerings)
+        checkUnitsCountLimits(s, offerings);
+        for (Offering o : offerings)
 			s.takeCourse(o.getCourse(), o.getSection());
 	}
+
+    private void checkUnitsCountLimits(Student s, List<Offering> offerings) throws EnrollmentRulesViolationException {
+        int unitsRequested = 0;
+        for (Offering o : offerings)
+            unitsRequested += o.getCourse().getUnits();
+        double gpa = s.getGPA();
+        if ((gpa < 12 && unitsRequested > 14) ||
+                (gpa < 16 && unitsRequested > 16) ||
+                (unitsRequested > 20))
+            throw new EnrollmentRulesViolationException(String.format("Number of units (%d) requested does not match GPA of %f", unitsRequested, gpa));
+    }
 
     private void checkTwiceCourseTakings(List<Offering> offerings) throws EnrollmentRulesViolationException {
         for (Offering o : offerings) {
