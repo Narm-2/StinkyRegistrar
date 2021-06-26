@@ -8,7 +8,7 @@ import domain.exceptions.EnrollmentRulesViolationException;
 import org.junit.Before;
 import org.junit.Test;
 
-public class EnrollCtrlTest {
+public class EnrollControlTest {
 	private Student bebe;
 	private Course prog;
 	private Course ap;
@@ -66,19 +66,19 @@ public class EnrollCtrlTest {
 
 	@Test
 	public void canTakeBasicCoursesInFirstTerm() throws EnrollmentRulesViolationException {
-		new EnrollCtrl().enroll(bebe, requestedOfferings(math1, phys1, prog));
+		new EnrollControl().enroll(bebe, requestedOfferings(math1, phys1, prog));
 		assertTrue(hasTaken(bebe, math1, phys1, prog));
 	}
 
 	@Test
 	public void canTakeNoOfferings() throws EnrollmentRulesViolationException {
-		new EnrollCtrl().enroll(bebe, new ArrayList<>());
+		new EnrollControl().enroll(bebe, new ArrayList<>());
 		assertTrue(hasTaken(bebe));
 	}
 
 	@Test(expected = EnrollmentRulesViolationException.class)
 	public void cannotTakeWithoutPreTaken() throws EnrollmentRulesViolationException {
-		new EnrollCtrl().enroll(bebe, requestedOfferings(math2, phys1, prog));
+		new EnrollControl().enroll(bebe, requestedOfferings(math2, phys1, prog));
 	}
 
 	@Test(expected = EnrollmentRulesViolationException.class)
@@ -86,7 +86,7 @@ public class EnrollCtrlTest {
 		bebe.addTranscriptRecord(phys1, new Term("t1"), 18);
 		bebe.addTranscriptRecord(prog, new Term("t1"), 12);
 		bebe.addTranscriptRecord(math1, new Term("t1"), 8.4);
-		new EnrollCtrl().enroll(bebe, requestedOfferings(math2, ap));
+		new EnrollControl().enroll(bebe, requestedOfferings(math2, ap));
 	}
 
 	@Test
@@ -99,7 +99,7 @@ public class EnrollCtrlTest {
 		bebe.addTranscriptRecord(ap, new Term("t2"), 16);
 		bebe.addTranscriptRecord(math1, new Term("t2"), 10.5);
 
-		new EnrollCtrl().enroll(bebe, requestedOfferings(math2, dm));
+		new EnrollControl().enroll(bebe, requestedOfferings(math2, dm));
 		assertTrue(hasTaken(bebe, math2, dm));
 	}
 
@@ -113,7 +113,7 @@ public class EnrollCtrlTest {
 		bebe.addTranscriptRecord(ap, new Term("t2"), 16);
 		bebe.addTranscriptRecord(math1, new Term("t2"), 10.5);
 
-		new EnrollCtrl().enroll(bebe, requestedOfferings(math1, dm));
+		new EnrollControl().enroll(bebe, requestedOfferings(math1, dm));
 	}
 
 	@Test(expected = EnrollmentRulesViolationException.class)
@@ -126,13 +126,13 @@ public class EnrollCtrlTest {
 		bebe.addTranscriptRecord(ap, new Term("t2"), 16);
 		bebe.addTranscriptRecord(math1, new Term("t2"), 10.5);
 
-		new EnrollCtrl().enroll(bebe, requestedOfferings(phys1, dm));
+		new EnrollControl().enroll(bebe, requestedOfferings(phys1, dm));
 	}
 
 	@Test(expected = EnrollmentRulesViolationException.class)
 	public void cannotTakeOfferingsWithSameExamTime() throws EnrollmentRulesViolationException {
 		Calendar cal = Calendar.getInstance();
-		new EnrollCtrl().enroll(bebe,
+		new EnrollControl().enroll(bebe,
 				List.of(
 					new CourseSectionExam(phys1, cal.getTime()),
 					new CourseSectionExam(math1, cal.getTime()),
@@ -142,7 +142,7 @@ public class EnrollCtrlTest {
 
 	@Test(expected = EnrollmentRulesViolationException.class)
 	public void cannotTakeACourseTwice() throws EnrollmentRulesViolationException {
-		new EnrollCtrl().enroll(bebe, requestedOfferings(phys1, dm, phys1));
+		new EnrollControl().enroll(bebe, requestedOfferings(phys1, dm, phys1));
 	}
 
 	@Test
@@ -151,7 +151,7 @@ public class EnrollCtrlTest {
 		bebe.addTranscriptRecord(prog, new Term("t1"), 11);
 		bebe.addTranscriptRecord(math1, new Term("t1"), 9);
 
-		new EnrollCtrl().enroll(bebe, requestedOfferings(dm, math1, farsi, akhlagh, english, maaref));
+		new EnrollControl().enroll(bebe, requestedOfferings(dm, math1, farsi, akhlagh, english, maaref));
 		assertTrue(hasTaken(bebe, dm, math1, farsi, akhlagh, english, maaref));
 	}
 
@@ -161,7 +161,7 @@ public class EnrollCtrlTest {
 		bebe.addTranscriptRecord(prog, new Term("t1"), 11);
 		bebe.addTranscriptRecord(math1, new Term("t1"), 9);
 
-		new EnrollCtrl().enroll(bebe, requestedOfferings(dm, math1, farsi, akhlagh, english, ap));
+		new EnrollControl().enroll(bebe, requestedOfferings(dm, math1, farsi, akhlagh, english, ap));
 		assertTrue(hasTaken(bebe, dm, math1, farsi, akhlagh, english, ap));
 	}
 
@@ -171,7 +171,7 @@ public class EnrollCtrlTest {
 		bebe.addTranscriptRecord(prog, new Term("t1"), 12);
 		bebe.addTranscriptRecord(math1, new Term("t1"), 9);
 
-		new EnrollCtrl().enroll(bebe, requestedOfferings(dm, math1, farsi, akhlagh, english, maaref));
+		new EnrollControl().enroll(bebe, requestedOfferings(dm, math1, farsi, akhlagh, english, maaref));
 		assertTrue(hasTaken(bebe, dm, math1, farsi, akhlagh, english, maaref));
 	}
 
@@ -181,7 +181,7 @@ public class EnrollCtrlTest {
 		bebe.addTranscriptRecord(prog, new Term("t1"), 15);
 		bebe.addTranscriptRecord(math1, new Term("t1"), 15);
 
-		new EnrollCtrl().enroll(bebe, requestedOfferings(dm, math2, farsi, akhlagh, english, maaref));
+		new EnrollControl().enroll(bebe, requestedOfferings(dm, math2, farsi, akhlagh, english, maaref));
 		assertTrue(hasTaken(bebe, dm, math2, farsi, akhlagh, english, maaref));
 	}
 
@@ -191,7 +191,7 @@ public class EnrollCtrlTest {
 		bebe.addTranscriptRecord(prog, new Term("t1"), 15);
 		bebe.addTranscriptRecord(math1, new Term("t1"), 15);
 
-		new EnrollCtrl().enroll(bebe, requestedOfferings(ap, dm, math2, farsi, akhlagh, english, ap));
+		new EnrollControl().enroll(bebe, requestedOfferings(ap, dm, math2, farsi, akhlagh, english, ap));
 		assertTrue(hasTaken(bebe, ap, dm, math2, farsi, akhlagh, english, ap));
 	}
 
@@ -201,7 +201,7 @@ public class EnrollCtrlTest {
 		bebe.addTranscriptRecord(prog, new Term("t1"), 16);
 		bebe.addTranscriptRecord(math1, new Term("t1"), 16);
 
-		new EnrollCtrl().enroll(bebe, requestedOfferings(
+		new EnrollControl().enroll(bebe, requestedOfferings(
 				ap, dm, math2, phys2, economy, karafarini, farsi));
 		assertTrue(hasTaken(bebe, ap, dm, math2, phys2, economy, karafarini, farsi));
 	}
@@ -212,7 +212,7 @@ public class EnrollCtrlTest {
 		bebe.addTranscriptRecord(prog, new Term("t1"), 16);
 		bebe.addTranscriptRecord(math1, new Term("t1"), 16);
 
-		new EnrollCtrl().enroll(bebe, requestedOfferings(
+		new EnrollControl().enroll(bebe, requestedOfferings(
 				ap, dm, math2, phys2, economy, karafarini, farsi, akhlagh, english));
 		assertTrue(hasTaken(bebe, ap, dm, math2, phys2, economy, karafarini, farsi, akhlagh, english));
 	}

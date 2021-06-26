@@ -5,7 +5,7 @@ import java.util.Map;
 
 import domain.exceptions.EnrollmentRulesViolationException;
 
-public class EnrollCtrl {
+public class EnrollControl {
 	public void enroll(Student s, List<CourseSectionExam> courses) throws EnrollmentRulesViolationException {
         Map<Term, Map<Course, Double>> transcript = s.getTranscript();
 		for (CourseSectionExam o : courses) {
