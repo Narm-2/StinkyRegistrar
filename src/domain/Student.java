@@ -31,6 +31,18 @@ public class Student {
 	    transcript.get(term).put(course, grade);
     }
 
+    public double getGPA() {
+		double points = 0;
+		int totalUnits = 0;
+		for (Map.Entry<Term, Map<Course, Double>> tr : transcript.entrySet()) {
+			for (Map.Entry<Course, Double> r : tr.getValue().entrySet()) {
+				points += r.getValue() * r.getKey().getUnits();
+				totalUnits += r.getKey().getUnits();
+			}
+		}
+		return points / totalUnits;
+	}
+
     public List<Offering> getCurrentTerm() {
         return currentTerm;
     }
