@@ -7,7 +7,6 @@ import domain.exceptions.EnrollmentRulesViolationException;
 
 public class EnrollControl {
 	public void enroll(Student s, List<Offering> offerings) throws EnrollmentRulesViolationException {
-        Map<Term, Map<Course, Double>> transcript = s.getTranscript();
         checkNotPassedCoursesBefore(s, offerings);
         checkPassedPrerequisites(s, offerings);
         checkExamTimeCollisions(offerings);
