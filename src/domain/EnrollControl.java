@@ -10,14 +10,7 @@ public class EnrollControl {
         Map<Term, Map<Course, Double>> transcript = s.getTranscript();
         checkNotPassedCoursesBefore(s, offerings);
         checkPassedPrerequisites(s, offerings);
-        for (Offering o : offerings) {
-            for (Offering o2 : offerings) {
-                if (o == o2)
-                    continue;
-                if (o.getExamTime().equals(o2.getExamTime()))
-                    throw new EnrollmentRulesViolationException(String.format("Two offerings %s and %s have the same exam time", o, o2));
-            }
-		}
+        checkExamTimeCollisions(offerings);
         for (Offering o : offerings) {
             for (Offering o2 : offerings) {
                 if (o == o2)
@@ -46,7 +39,18 @@ public class EnrollControl {
 			s.takeCourse(o.getCourse(), o.getSection());
 	}
 
-	private void checkNotPassedCoursesBefore(Student s, List<Offering> offerings) throws EnrollmentRulesViolationException {
+    private void checkExamTimeCollisions(List<Offering> offerings) throws EnrollmentRulesViolationException {
+        for (Offering o : offerings) {
+            for (Offering o2 : offerings) {
+                if (o == o2)
+                    continue;
+                if (o.getExamTime().equals(o2.getExamTime()))
+                    throw new EnrollmentRulesViolationException(String.format("Two offerings %s and %s have the same exam time", o, o2));
+            }
+		}
+    }
+
+    private void checkNotPassedCoursesBefore(Student s, List<Offering> offerings) throws EnrollmentRulesViolationException {
         Map<Term, Map<Course, Double>> transcript = s.getTranscript();
         for (Offering o : offerings) {
             for (Map.Entry<Term, Map<Course, Double>> tr : transcript.entrySet()) {
