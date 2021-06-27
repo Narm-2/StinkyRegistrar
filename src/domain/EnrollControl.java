@@ -8,6 +8,14 @@ import java.util.HashSet;
 import domain.exceptions.EnrollmentRulesViolationException;
 
 public class EnrollControl {
+    private static final int MIN_PASSED_SCORE = 10;
+
+    private static final int UNQUALIFIED_GPA_BORDER = 12;
+    private static final int UNQUALIFIED_MAX_UNITS = 14;
+    private static final int PRIVILEGED_GPA_BORDER = 16;
+    private static final int GENERAL_MAX_UNITS = 16;
+    private static final int PRIVILEGED_MAX_UNITS = 20;
+
 	public void enroll(Student s, List<Offering> offerings) throws EnrollmentRulesViolationException {
         checkNotPassedCoursesBefore(s, offerings);
         checkPassedPrerequisites(s, offerings);
@@ -56,7 +64,7 @@ public class EnrollControl {
         for (Offering o : offerings) {
             for (Map.Entry<Term, Map<Course, Double>> tr : transcript.entrySet()) {
                 for (Map.Entry<Course, Double> r : tr.getValue().entrySet()) {
-                    if (r.getKey().equals(o.getCourse()) && r.getValue() >= 10)
+                    if (r.getKey().equals(o.getCourse()) && r.getValue() >= MIN_PASSED_SCORE)
                         throw new EnrollmentRulesViolationException(String.format("The student has already passed %s", o.getCourse().getName()));
                 }
             }
@@ -71,7 +79,7 @@ public class EnrollControl {
             for (Map.Entry<Course, Double> r : tr.getValue().entrySet()) {
                 Course c = r.getKey();
                 Double score = r.getValue();
-                if (score >= 10)
+                if (score >= MIN_PASSED_SCORE)
                     passedCourses.add(c);
             }
         }
@@ -87,14 +95,14 @@ public class EnrollControl {
     }
 
     private boolean checkUnitLimitationUnqualified(double gpa, int unitsRequested) {
-        return (gpa < 12 && unitsRequested > 14);
+        return (gpa < UNQUALIFIED_GPA_BORDER && unitsRequested > UNQUALIFIED_MAX_UNITS);
     }
 
     private boolean checkUnitLimitationPrivileged(double gpa, int unitsRequested) {
-        return (gpa < 16 && unitsRequested > 16);
+        return (gpa < PRIVILEGED_GPA_BORDER && unitsRequested > GENERAL_MAX_UNITS);
     }
 
     private boolean checkUnitLimitationMaxUnits(int unitsRequested) {
-        return (unitsRequested > 20);
+        return (unitsRequested > PRIVILEGED_MAX_UNITS);
     }
 }
