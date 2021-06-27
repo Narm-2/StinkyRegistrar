@@ -8,13 +8,13 @@ import java.util.HashSet;
 import domain.exceptions.EnrollmentRulesViolationException;
 
 public class EnrollControl {
-    private static final int MIN_PASSED_SCORE = 10;
+    public static final int MIN_PASSED_SCORE = 10;
 
-    private static final int UNQUALIFIED_GPA_BORDER = 12;
-    private static final int UNQUALIFIED_MAX_UNITS = 14;
-    private static final int PRIVILEGED_GPA_BORDER = 16;
-    private static final int GENERAL_MAX_UNITS = 16;
-    private static final int PRIVILEGED_MAX_UNITS = 20;
+    public static final int UNQUALIFIED_GPA_BORDER = 12;
+    public static final int UNQUALIFIED_MAX_UNITS = 14;
+    public static final int PRIVILEGED_GPA_BORDER = 16;
+    public static final int GENERAL_MAX_UNITS = 16;
+    public static final int PRIVILEGED_MAX_UNITS = 20;
 
 	public void enroll(Student student, List<Offering> offerings) throws EnrollmentRulesViolationException {
         checkNotPassedCoursesBefore(student, offerings);

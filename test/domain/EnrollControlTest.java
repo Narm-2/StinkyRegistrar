@@ -9,6 +9,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class EnrollControlTest {
+	private int BASIC_UNIT = 3;
+
 	private Student bebe;
 	private Course prog;
 	private Course ap;
@@ -32,7 +34,7 @@ public class EnrollControlTest {
 	public void setup() {
 		math1 = new Course("4", "MATH1", 3);
 		phys1 = new Course("8", "PHYS1", 3);
-		prog = new Course("7", "PROG", 4);
+		prog = new Course("7", "PROG", 3);
 		prerequisitesCourses = new ArrayList<>();
 		prerequisitesCourses.add(math1);
 		prerequisitesCourses.add(phys1);
@@ -48,12 +50,12 @@ public class EnrollControlTest {
 		advancedCourses.add(ap);
 		advancedCourses.add(dm);
 		
-		economy = new Course("1", "ECO", 2);
-		maaref = new Course("5", "MAAREF", 2);
-		farsi = new Course("12", "FA", 2);
-		english = new Course("10", "EN", 2);
-		akhlagh = new Course("11", "AKHLAGH", 2);
-		karafarini = new Course("13", "KAR", 2);
+		economy = new Course("1", "ECO", BASIC_UNIT);
+		maaref = new Course("5", "MAAREF", BASIC_UNIT);
+		farsi = new Course("12", "FA", BASIC_UNIT);
+		english = new Course("10", "EN", BASIC_UNIT);
+		akhlagh = new Course("11", "AKHLAGH", BASIC_UNIT);
+		karafarini = new Course("13", "KAR", BASIC_UNIT);
 		basicCourses = new ArrayList<>();
 		basicCourses.add(economy);
 		basicCourses.add(maaref);
@@ -65,7 +67,7 @@ public class EnrollControlTest {
 		bebe = new Student("1", "Bebe");
 	}
 
-	private ArrayList<Offering> requestedOfferings(Course...courses) {
+	private ArrayList<Offering> requestedOfferings(List<Course> courses) {
 		Calendar cal = Calendar.getInstance();
 		ArrayList<Offering> result = new ArrayList<>();
 		for (Course course : courses) {
@@ -75,17 +77,7 @@ public class EnrollControlTest {
 		return result;
 	}
 
-	private ArrayList<Offering> requestedOfferings2(List<Course> courses) {
-		Calendar cal = Calendar.getInstance();
-		ArrayList<Offering> result = new ArrayList<>();
-		for (Course course : courses) {
-			cal.add(Calendar.DATE, 1);
-			result.add(new Offering(course, cal.getTime()));
-		}
-		return result;
-	}
-
-	private boolean hasTaken(Student s, Course...courses) {
+	private boolean hasTaken(Student s, List<Course> courses) {
 	    Set<Course> coursesTaken = new HashSet<>();
 		for (Offering cs : s.getCurrentTerm())
 				coursesTaken.add(cs.getCourse());
@@ -96,81 +88,74 @@ public class EnrollControlTest {
 		return true;
 	}
 
-	private boolean hasTaken2(Student s, List<Course> courses) {
-	    Set<Course> coursesTaken = new HashSet<>();
-		for (Offering cs : s.getCurrentTerm())
-				coursesTaken.add(cs.getCourse());
-		for (Course course : courses) {
-			if (!coursesTaken.contains(course))
-				return false;
+	private void addPrerequisitesTranscript(Student student, int score, int term, int CourseCount, int courseStartingIndex) {
+		String strTerm = "Term" + Integer.toString(term);
+		for(int i=0; i<CourseCount; i++) {
+			student.addTranscriptRecord(prerequisitesCourses.get(i+courseStartingIndex), new Term(strTerm), score);
 		}
-		return true;
+	}
+	
+	private void addBasicTranscript(Student student, int score, int term, int CourseCount, int courseStartingIndex) {
+		String strTerm = "Term" + Integer.toString(term);
+		for(int i=0; i<CourseCount; i++) {
+			student.addTranscriptRecord(basicCourses.get(i+courseStartingIndex), new Term(strTerm), score);
+		}
 	}
 
 	@Test
 	public void canTakeBasicCourses() throws EnrollmentRulesViolationException {
-		new EnrollControl().enroll(bebe, requestedOfferings2(basicCourses));
-		assertTrue(hasTaken2(bebe, basicCourses));
+		new EnrollControl().enroll(bebe, requestedOfferings(prerequisitesCourses));
+		assertTrue(hasTaken(bebe, prerequisitesCourses));
 	}
 
 	@Test
 	public void canTakeNoOfferings() throws EnrollmentRulesViolationException {
 		new EnrollControl().enroll(bebe, new ArrayList<>());
-		assertTrue(hasTaken2(bebe, new ArrayList<>()));
+		assertTrue(hasTaken(bebe, new ArrayList<>()));
 	}
 
 	@Test(expected = EnrollmentRulesViolationException.class)
 	public void cannotTakeWithoutPreTaken() throws EnrollmentRulesViolationException {
 		List<Course> requestedCourses = Arrays.asList(basicCourses.get(0), basicCourses.get(1), advancedCourses.get(0));
-		new EnrollControl().enroll(bebe, requestedOfferings2(requestedCourses));
+		new EnrollControl().enroll(bebe, requestedOfferings(requestedCourses));
 	}
 
 	@Test(expected = EnrollmentRulesViolationException.class)
 	public void cannotTakeWithoutPrePassed() throws EnrollmentRulesViolationException {
-		bebe.addTranscriptRecord(phys1, new Term("t1"), 18);
-		bebe.addTranscriptRecord(prog, new Term("t1"), 12);
-		bebe.addTranscriptRecord(math1, new Term("t1"), 8.4);
-		new EnrollControl().enroll(bebe, requestedOfferings(math2, ap));
+		addPrerequisitesTranscript(bebe, EnrollControl.MIN_PASSED_SCORE+1, 1, 2, 0);
+		addPrerequisitesTranscript(bebe, EnrollControl.MIN_PASSED_SCORE-1, 1, 1, 2);
+		new EnrollControl().enroll(bebe, requestedOfferings(advancedCourses));
 	}
 
 	@Test
 	public void canTakeWithPreFinallyPassed() throws EnrollmentRulesViolationException {
-		bebe.addTranscriptRecord(phys1, new Term("t1"), 18);
-		bebe.addTranscriptRecord(prog, new Term("t1"), 12);
-		bebe.addTranscriptRecord(math1, new Term("t1"), 8.4);
+		addPrerequisitesTranscript(bebe, EnrollControl.MIN_PASSED_SCORE+1, 1, 2, 0);
+		addPrerequisitesTranscript(bebe, EnrollControl.MIN_PASSED_SCORE-1, 1, 1, 2);
 
-		bebe.addTranscriptRecord(phys2, new Term("t2"), 10);
-		bebe.addTranscriptRecord(ap, new Term("t2"), 16);
-		bebe.addTranscriptRecord(math1, new Term("t2"), 10.5);
+		addPrerequisitesTranscript(bebe, EnrollControl.MIN_PASSED_SCORE+1, 2, 1, 2);
+		addBasicTranscript(bebe, EnrollControl.MIN_PASSED_SCORE+1, 2, 2, 0);
 
-		new EnrollControl().enroll(bebe, requestedOfferings(math2, dm));
-		assertTrue(hasTaken(bebe, math2, dm));
+		new EnrollControl().enroll(bebe, requestedOfferings(advancedCourses));
+		assertTrue(hasTaken(bebe, advancedCourses));
 	}
 
 	@Test(expected = EnrollmentRulesViolationException.class)
 	public void cannotTakeAlreadyPassed1() throws EnrollmentRulesViolationException {
-		bebe.addTranscriptRecord(phys1, new Term("t1"), 18);
-		bebe.addTranscriptRecord(prog, new Term("t1"), 12);
-		bebe.addTranscriptRecord(math1, new Term("t1"), 8.4);
+		addPrerequisitesTranscript(bebe, EnrollControl.MIN_PASSED_SCORE-1, 1, 1, 0);
+		addBasicTranscript(bebe, EnrollControl.MIN_PASSED_SCORE+1, 1, 2, 0);
 
-		bebe.addTranscriptRecord(phys2, new Term("t2"), 10);
-		bebe.addTranscriptRecord(ap, new Term("t2"), 16);
-		bebe.addTranscriptRecord(math1, new Term("t2"), 10.5);
+		addPrerequisitesTranscript(bebe, EnrollControl.MIN_PASSED_SCORE+1, 2, 1, 0);
+		addBasicTranscript(bebe, EnrollControl.MIN_PASSED_SCORE+1, 1, 1, 2);
 
-		new EnrollControl().enroll(bebe, requestedOfferings(math1, dm));
+		new EnrollControl().enroll(bebe, requestedOfferings(prerequisitesCourses));
 	}
 
 	@Test(expected = EnrollmentRulesViolationException.class)
 	public void cannotTakeAlreadyPassed2() throws EnrollmentRulesViolationException {
-		bebe.addTranscriptRecord(phys1, new Term("t1"), 18);
-		bebe.addTranscriptRecord(prog, new Term("t1"), 12);
-		bebe.addTranscriptRecord(math1, new Term("t1"), 8.4);
+		addPrerequisitesTranscript(bebe, EnrollControl.MIN_PASSED_SCORE+1, 1, 1, 0);
+		addBasicTranscript(bebe, EnrollControl.MIN_PASSED_SCORE+1, 1, 2, 0);
 
-		bebe.addTranscriptRecord(phys2, new Term("t2"), 10);
-		bebe.addTranscriptRecord(ap, new Term("t2"), 16);
-		bebe.addTranscriptRecord(math1, new Term("t2"), 10.5);
-
-		new EnrollControl().enroll(bebe, requestedOfferings(phys1, dm));
+		new EnrollControl().enroll(bebe, requestedOfferings(prerequisitesCourses));
 	}
 
 	@Test(expected = EnrollmentRulesViolationException.class)
@@ -187,80 +172,82 @@ public class EnrollControlTest {
 	@Test(expected = EnrollmentRulesViolationException.class)
 	public void cannotTakeACourseTwice() throws EnrollmentRulesViolationException {
 		List<Course> requestedCourses = Arrays.asList(basicCourses.get(0), basicCourses.get(0), basicCourses.get(1));
-		new EnrollControl().enroll(bebe, requestedOfferings2(requestedCourses));
+		new EnrollControl().enroll(bebe, requestedOfferings(requestedCourses));
 	}
 
 	@Test
 	public void canTake14WithGPA11() throws EnrollmentRulesViolationException {
-		bebe.addTranscriptRecord(phys1, new Term("t1"), 13);
-		bebe.addTranscriptRecord(prog, new Term("t1"), 11);
-		bebe.addTranscriptRecord(math1, new Term("t1"), 9);
+		addBasicTranscript(bebe, EnrollControl.UNQUALIFIED_GPA_BORDER-1, 1, 1, 0);
+		
+		int courseCount = (12+BASIC_UNIT-1) / BASIC_UNIT;
+		List<Course> requestedCourses = basicCourses.subList(1, 1+courseCount);
 
-		new EnrollControl().enroll(bebe, requestedOfferings(dm, math1, farsi, akhlagh, english, maaref));
-		assertTrue(hasTaken(bebe, dm, math1, farsi, akhlagh, english, maaref));
+		new EnrollControl().enroll(bebe, requestedOfferings(requestedCourses));
+		assertTrue(hasTaken(bebe, requestedCourses));
 	}
 
 	@Test(expected = EnrollmentRulesViolationException.class)
 	public void cannotTake15WithGPA11() throws EnrollmentRulesViolationException {
-		bebe.addTranscriptRecord(phys1, new Term("t1"), 13);
-		bebe.addTranscriptRecord(prog, new Term("t1"), 11);
-		bebe.addTranscriptRecord(math1, new Term("t1"), 9);
+		addBasicTranscript(bebe, EnrollControl.UNQUALIFIED_GPA_BORDER-1, 1, 1, 0);
 
-		new EnrollControl().enroll(bebe, requestedOfferings(dm, math1, farsi, akhlagh, english, ap));
-		assertTrue(hasTaken(bebe, dm, math1, farsi, akhlagh, english, ap));
+		int courseCount = (15+BASIC_UNIT-1) / BASIC_UNIT;
+		List<Course> requestedCourses = basicCourses.subList(1, 1+courseCount);
+
+		new EnrollControl().enroll(bebe, requestedOfferings(requestedCourses));
+		assertTrue(hasTaken(bebe, requestedCourses));
 	}
 
 	@Test
 	public void canTake15WithGPA12() throws EnrollmentRulesViolationException {
-		bebe.addTranscriptRecord(phys1, new Term("t1"), 15);
-		bebe.addTranscriptRecord(prog, new Term("t1"), 12);
-		bebe.addTranscriptRecord(math1, new Term("t1"), 9);
+		addBasicTranscript(bebe, EnrollControl.UNQUALIFIED_GPA_BORDER, 1, 1, 0);
 
-		new EnrollControl().enroll(bebe, requestedOfferings(dm, math1, farsi, akhlagh, english, maaref));
-		assertTrue(hasTaken(bebe, dm, math1, farsi, akhlagh, english, maaref));
+		int courseCount = (15+BASIC_UNIT-1) / BASIC_UNIT;
+		List<Course> requestedCourses = basicCourses.subList(1, 1+courseCount);
+
+		new EnrollControl().enroll(bebe, requestedOfferings(requestedCourses));
+		assertTrue(hasTaken(bebe, requestedCourses));
 	}
 
 	@Test
 	public void canTake15WithGPA15() throws EnrollmentRulesViolationException {
-		bebe.addTranscriptRecord(phys1, new Term("t1"), 15);
-		bebe.addTranscriptRecord(prog, new Term("t1"), 15);
-		bebe.addTranscriptRecord(math1, new Term("t1"), 15);
+		addBasicTranscript(bebe, EnrollControl.UNQUALIFIED_GPA_BORDER+3, 1, 1, 0);
 
-		new EnrollControl().enroll(bebe, requestedOfferings(dm, math2, farsi, akhlagh, english, maaref));
-		assertTrue(hasTaken(bebe, dm, math2, farsi, akhlagh, english, maaref));
+		int courseCount = (15+BASIC_UNIT-1) / BASIC_UNIT;
+		List<Course> requestedCourses = basicCourses.subList(1, 1+courseCount);
+
+		new EnrollControl().enroll(bebe, requestedOfferings(requestedCourses));
+		assertTrue(hasTaken(bebe, requestedCourses));
 	}
 
 	@Test(expected = EnrollmentRulesViolationException.class)
 	public void cannotTake18WithGPA15() throws EnrollmentRulesViolationException {
-		bebe.addTranscriptRecord(phys1, new Term("t1"), 15);
-		bebe.addTranscriptRecord(prog, new Term("t1"), 15);
-		bebe.addTranscriptRecord(math1, new Term("t1"), 15);
+		addPrerequisitesTranscript(bebe, EnrollControl.UNQUALIFIED_GPA_BORDER+3, 1, 1, 0);
 
-		new EnrollControl().enroll(bebe, requestedOfferings(ap, dm, math2, farsi, akhlagh, english, ap));
-		assertTrue(hasTaken(bebe, ap, dm, math2, farsi, akhlagh, english, ap));
+		int courseCount = (18+BASIC_UNIT-1) / BASIC_UNIT;
+		List<Course> requestedCourses = basicCourses.subList(0, courseCount);
+
+		new EnrollControl().enroll(bebe, requestedOfferings(requestedCourses));
+		assertTrue(hasTaken(bebe, requestedCourses));
 	}
 
 	@Test
 	public void canTake20WithGPA16() throws EnrollmentRulesViolationException {
-		bebe.addTranscriptRecord(phys1, new Term("t1"), 16);
-		bebe.addTranscriptRecord(prog, new Term("t1"), 16);
-		bebe.addTranscriptRecord(math1, new Term("t1"), 16);
+		addPrerequisitesTranscript(bebe, EnrollControl.PRIVILEGED_GPA_BORDER, 1, 1, 0);
 
-		new EnrollControl().enroll(bebe, requestedOfferings(
-				ap, dm, math2, phys2, economy, karafarini, farsi));
-		assertTrue(hasTaken(bebe, ap, dm, math2, phys2, economy, karafarini, farsi));
+		int courseCount = (18+BASIC_UNIT-1) / BASIC_UNIT;
+		List<Course> requestedCourses = basicCourses.subList(0, courseCount);
+
+		new EnrollControl().enroll(bebe, requestedOfferings(requestedCourses));
+		assertTrue(hasTaken(bebe, requestedCourses));
 	}
 
 	@Test(expected = EnrollmentRulesViolationException.class)
 	public void cannotTake24() throws EnrollmentRulesViolationException {
-		bebe.addTranscriptRecord(phys1, new Term("t1"), 16);
-		bebe.addTranscriptRecord(prog, new Term("t1"), 16);
-		bebe.addTranscriptRecord(math1, new Term("t1"), 16);
+		List<Course> requestedCourses = basicCourses;
+		requestedCourses.add(prerequisitesCourses.get(0));
+		requestedCourses.add(prerequisitesCourses.get(1));
 
-		new EnrollControl().enroll(bebe, requestedOfferings(
-				ap, dm, math2, phys2, economy, karafarini, farsi, akhlagh, english));
-		assertTrue(hasTaken(bebe, ap, dm, math2, phys2, economy, karafarini, farsi, akhlagh, english));
+		new EnrollControl().enroll(bebe, requestedOfferings(requestedCourses));
+		assertTrue(hasTaken(bebe, requestedCourses));
 	}
-
-
 }
