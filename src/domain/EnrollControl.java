@@ -2,6 +2,8 @@ package domain;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
 
 import domain.exceptions.EnrollmentRulesViolationException;
 
@@ -62,18 +64,24 @@ public class EnrollControl {
     }
 
     private void checkPassedPrerequisites(Student s, List<Offering> offerings) throws EnrollmentRulesViolationException {
+        
         Map<Term, Map<Course, Double>> transcript = s.getTranscript();
+        Set<Course> passedCourses = new HashSet<Course>();
+        for (Map.Entry<Term, Map<Course, Double>> tr : transcript.entrySet()) {
+            for (Map.Entry<Course, Double> r : tr.getValue().entrySet()) {
+                Course c = r.getKey();
+                Double score = r.getValue();
+                if (score >= 10)
+                    passedCourses.add(c);
+            }
+        }
+
         for (Offering o : offerings) {
-            List<Course> prereqs = o.getCourse().getPrerequisites();
-            nextPre:
-            for (Course pre : prereqs) {
-                for (Map.Entry<Term, Map<Course, Double>> tr : transcript.entrySet()) {
-                    for (Map.Entry<Course, Double> r : tr.getValue().entrySet()) {
-                        if (r.getKey().equals(pre) && r.getValue() >= 10)
-                            continue nextPre;
-                    }
-                }
-                throw new EnrollmentRulesViolationException(String.format("The student has not passed %s as a prerequisite of %s", pre.getName(), o.getCourse().getName()));
+            List<Course> prerequisites = o.getCourse().getPrerequisites();
+            for (Course pre : prerequisites) {
+                if (!passedCourses.contains(pre))
+                    throw new EnrollmentRulesViolationException(
+                        String.format("The student has not passed %s as a prerequisite of %s", pre.getName(), o.getCourse().getName()));
             }
         }
     }
