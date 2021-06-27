@@ -16,21 +16,21 @@ public class EnrollControl {
     private static final int GENERAL_MAX_UNITS = 16;
     private static final int PRIVILEGED_MAX_UNITS = 20;
 
-	public void enroll(Student s, List<Offering> offerings) throws EnrollmentRulesViolationException {
-        checkNotPassedCoursesBefore(s, offerings);
-        checkPassedPrerequisites(s, offerings);
+	public void enroll(Student student, List<Offering> offerings) throws EnrollmentRulesViolationException {
+        checkNotPassedCoursesBefore(student, offerings);
+        checkPassedPrerequisites(student, offerings);
         checkExamTimeCollisions(offerings);
         checkTwiceCourseTakings(offerings);
-        checkUnitsCountLimits(s, offerings);
-        for (Offering o : offerings)
-			s.takeCourse(o.getCourse(), o.getSection());
+        checkUnitsCountLimits(student, offerings);
+        for (Offering offer : offerings)
+			student.takeCourse(offer.getCourse(), offer.getSection());
 	}
 
-    private void checkUnitsCountLimits(Student s, List<Offering> offerings) throws EnrollmentRulesViolationException {
+    private void checkUnitsCountLimits(Student student, List<Offering> offerings) throws EnrollmentRulesViolationException {
         int unitsRequested = 0;
-        for (Offering o : offerings)
-            unitsRequested += o.getCourse().getUnits();
-        double gpa = s.getGPA();
+        for (Offering offer : offerings)
+            unitsRequested += offer.getCourse().getUnits();
+        double gpa = student.getGPA();
         if (checkUnitLimitationUnqualified(gpa, unitsRequested) ||
             checkUnitLimitationPrivileged(gpa, unitsRequested) ||
             checkUnitLimitationMaxUnits(unitsRequested))
@@ -38,58 +38,60 @@ public class EnrollControl {
     }
 
     private void checkTwiceCourseTakings(List<Offering> offerings) throws EnrollmentRulesViolationException {
-        for (Offering o : offerings) {
-            for (Offering o2 : offerings) {
-                if (o == o2)
+        for (Offering offer : offerings) {
+            for (Offering otherOffer : offerings) {
+                if (offer == otherOffer)
                     continue;
-                if (o.getCourse().equals(o2.getCourse()))
-                    throw new EnrollmentRulesViolationException(String.format("%s is requested to be taken twice", o.getCourse().getName()));
+                if (offer.getCourse().equals(otherOffer.getCourse()))
+                    throw new EnrollmentRulesViolationException(String.format("%s is requested to be taken twice", offer.getCourse().getName()));
             }
         }
     }
 
     private void checkExamTimeCollisions(List<Offering> offerings) throws EnrollmentRulesViolationException {
-        for (Offering o : offerings) {
-            for (Offering o2 : offerings) {
-                if (o == o2)
+        for (Offering offer : offerings) {
+            for (Offering otherOffer : offerings) {
+                if (offer == otherOffer)
                     continue;
-                if (o.getExamTime().equals(o2.getExamTime()))
-                    throw new EnrollmentRulesViolationException(String.format("Two offerings %s and %s have the same exam time", o, o2));
+                if (offer.getExamTime().equals(otherOffer.getExamTime()))
+                    throw new EnrollmentRulesViolationException(String.format("Two offerings %s and %s have the same exam time", offer, otherOffer));
             }
 		}
     }
 
-    private void checkNotPassedCoursesBefore(Student s, List<Offering> offerings) throws EnrollmentRulesViolationException {
-        Map<Term, Map<Course, Double>> transcript = s.getTranscript();
-        for (Offering o : offerings) {
-            for (Map.Entry<Term, Map<Course, Double>> tr : transcript.entrySet()) {
-                for (Map.Entry<Course, Double> r : tr.getValue().entrySet()) {
-                    if (r.getKey().equals(o.getCourse()) && r.getValue() >= MIN_PASSED_SCORE)
-                        throw new EnrollmentRulesViolationException(String.format("The student has already passed %s", o.getCourse().getName()));
+    private void checkNotPassedCoursesBefore(Student student, List<Offering> offerings) throws EnrollmentRulesViolationException {
+        Map<Term, Map<Course, Double>> transcript = student.getTranscript();
+        for (Offering offer : offerings) {
+            for (Map.Entry<Term, Map<Course, Double>> termTranscript : transcript.entrySet()) {
+                for (Map.Entry<Course, Double> courseScore : termTranscript.getValue().entrySet()) {
+                    Course course = courseScore.getKey();
+                    Double score = courseScore.getValue();
+                    if (course.equals(offer.getCourse()) && score >= MIN_PASSED_SCORE)
+                        throw new EnrollmentRulesViolationException(String.format("The student has already passed %s", offer.getCourse().getName()));
                 }
             }
         }
     }
 
-    private void checkPassedPrerequisites(Student s, List<Offering> offerings) throws EnrollmentRulesViolationException {
+    private void checkPassedPrerequisites(Student student, List<Offering> offerings) throws EnrollmentRulesViolationException {
         
-        Map<Term, Map<Course, Double>> transcript = s.getTranscript();
+        Map<Term, Map<Course, Double>> transcript = student.getTranscript();
         Set<Course> passedCourses = new HashSet<Course>();
-        for (Map.Entry<Term, Map<Course, Double>> tr : transcript.entrySet()) {
-            for (Map.Entry<Course, Double> r : tr.getValue().entrySet()) {
-                Course c = r.getKey();
-                Double score = r.getValue();
+        for (Map.Entry<Term, Map<Course, Double>> termTranscript : transcript.entrySet()) {
+            for (Map.Entry<Course, Double> courseScore : termTranscript.getValue().entrySet()) {
+                Course course = courseScore.getKey();
+                Double score = courseScore.getValue();
                 if (score >= MIN_PASSED_SCORE)
-                    passedCourses.add(c);
+                    passedCourses.add(course);
             }
         }
 
-        for (Offering o : offerings) {
-            List<Course> prerequisites = o.getCourse().getPrerequisites();
+        for (Offering offer : offerings) {
+            List<Course> prerequisites = offer.getCourse().getPrerequisites();
             for (Course pre : prerequisites) {
                 if (!passedCourses.contains(pre))
                     throw new EnrollmentRulesViolationException(
-                        String.format("The student has not passed %s as a prerequisite of %s", pre.getName(), o.getCourse().getName()));
+                        String.format("The student has not passed %s as a prerequisite of %s", pre.getName(), offer.getCourse().getName()));
             }
         }
     }
