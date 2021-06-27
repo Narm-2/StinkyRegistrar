@@ -24,26 +24,58 @@ public class EnrollControlTest {
 	private Course economy;
 	private Course karafarini;
 
+	private List<Course> basicCourses;
+	private List<Course> advancedCourses;
+	private List<Course> prerequisitesCourses;
+
 	@Before
 	public void setup() {
 		math1 = new Course("4", "MATH1", 3);
 		phys1 = new Course("8", "PHYS1", 3);
 		prog = new Course("7", "PROG", 4);
+		prerequisitesCourses = new ArrayList<>();
+		prerequisitesCourses.add(math1);
+		prerequisitesCourses.add(phys1);
+		prerequisitesCourses.add(prog);
+		
 		math2 = new Course("6", "MATH2", 3).withPre(math1);
 		phys2 = new Course("9", "PHYS2", 3).withPre(math1, phys1);
 		ap = new Course("2", "AP", 3).withPre(prog);
 		dm = new Course("3", "DM", 3).withPre(prog);
-		economy = new Course("1", "ECO", 3);
+		advancedCourses = new ArrayList<>();
+		advancedCourses.add(math2);
+		advancedCourses.add(phys2);
+		advancedCourses.add(ap);
+		advancedCourses.add(dm);
+		
+		economy = new Course("1", "ECO", 2);
 		maaref = new Course("5", "MAAREF", 2);
 		farsi = new Course("12", "FA", 2);
 		english = new Course("10", "EN", 2);
 		akhlagh = new Course("11", "AKHLAGH", 2);
-		karafarini = new Course("13", "KAR", 3);
+		karafarini = new Course("13", "KAR", 2);
+		basicCourses = new ArrayList<>();
+		basicCourses.add(economy);
+		basicCourses.add(maaref);
+		basicCourses.add(farsi);
+		basicCourses.add(english);
+		basicCourses.add(akhlagh);
+		basicCourses.add(karafarini);
 
 		bebe = new Student("1", "Bebe");
 	}
 
 	private ArrayList<Offering> requestedOfferings(Course...courses) {
+		Calendar cal = Calendar.getInstance();
+		ArrayList<Offering> result = new ArrayList<>();
+		for (Course course : courses) {
+			cal.add(Calendar.DATE, 1);
+			result.add(new Offering(course, cal.getTime()));
+		}
+		return result;
+	}
+
+	private ArrayList<Offering> requestedOfferings2(List<Course> courses) {
 		Calendar cal = Calendar.getInstance();
 		ArrayList<Offering> result = new ArrayList<>();
 		for (Course course : courses) {
@@ -64,21 +96,33 @@ public class EnrollControlTest {
 		return true;
 	}
 
+	private boolean hasTaken2(Student s, List<Course> courses) {
+	    Set<Course> coursesTaken = new HashSet<>();
+		for (Offering cs : s.getCurrentTerm())
+				coursesTaken.add(cs.getCourse());
+		for (Course course : courses) {
+			if (!coursesTaken.contains(course))
+				return false;
+		}
+		return true;
+	}
+
 	@Test
-	public void canTakeBasicCoursesInFirstTerm() throws EnrollmentRulesViolationException {
-		new EnrollControl().enroll(bebe, requestedOfferings(math1, phys1, prog));
-		assertTrue(hasTaken(bebe, math1, phys1, prog));
+	public void canTakeBasicCourses() throws EnrollmentRulesViolationException {
+		new EnrollControl().enroll(bebe, requestedOfferings2(basicCourses));
+		assertTrue(hasTaken2(bebe, basicCourses));
 	}
 
 	@Test
 	public void canTakeNoOfferings() throws EnrollmentRulesViolationException {
 		new EnrollControl().enroll(bebe, new ArrayList<>());
-		assertTrue(hasTaken(bebe));
+		assertTrue(hasTaken2(bebe, new ArrayList<>()));
 	}
 
 	@Test(expected = EnrollmentRulesViolationException.class)
 	public void cannotTakeWithoutPreTaken() throws EnrollmentRulesViolationException {
-		new EnrollControl().enroll(bebe, requestedOfferings(math2, phys1, prog));
+		List<Course> requestedCourses = Arrays.asList(basicCourses.get(0), basicCourses.get(1), advancedCourses.get(0));
+		new EnrollControl().enroll(bebe, requestedOfferings2(requestedCourses));
 	}
 
 	@Test(expected = EnrollmentRulesViolationException.class)
@@ -134,15 +178,16 @@ public class EnrollControlTest {
 		Calendar cal = Calendar.getInstance();
 		new EnrollControl().enroll(bebe,
 				List.of(
-					new Offering(phys1, cal.getTime()),
-					new Offering(math1, cal.getTime()),
-					new Offering(phys1, cal.getTime())
+					new Offering(basicCourses.get(0), cal.getTime()),
+					new Offering(basicCourses.get(1), cal.getTime()),
+					new Offering(basicCourses.get(2), cal.getTime())
 				));
 	}
 
 	@Test(expected = EnrollmentRulesViolationException.class)
 	public void cannotTakeACourseTwice() throws EnrollmentRulesViolationException {
-		new EnrollControl().enroll(bebe, requestedOfferings(phys1, dm, phys1));
+		List<Course> requestedCourses = Arrays.asList(basicCourses.get(0), basicCourses.get(0), basicCourses.get(1));
+		new EnrollControl().enroll(bebe, requestedOfferings2(requestedCourses));
 	}
 
 	@Test
