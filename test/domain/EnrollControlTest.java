@@ -263,4 +263,15 @@ public class EnrollControlTest {
 			new EnrollControl().enroll(bebe, requestedOfferings(requestedCourses));
 		assertTrue(exceptions.size() == 1);
 	}
+
+	@Test
+	public void cannotTakeMoreThanMaxUnitsAndPrerequisitesNotPassed() {
+		List<Course> requestedCourses = basicCourses;
+		requestedCourses.addAll(prerequisitesCourses);
+		requestedCourses.addAll(advancedCourses);
+
+		List<EnrollmentRulesViolationException> exceptions = 
+			new EnrollControl().enroll(bebe, requestedOfferings(requestedCourses));
+		assertTrue(exceptions.size() == 2);
+	}
 }
