@@ -111,6 +111,19 @@ public class EnrollControlTest {
 		}
 	}
 
+	private void checkOfferingWithGivenUnitCountAndGPA(int requestedUnits, int gpa) throws EnrollmentRulesViolationException {
+		addPrerequisitesTranscript(bebe, gpa, 1, 1, 0);
+		
+		int courseCount = requestedUnits / BASIC_UNIT;
+		int remainingUnits = requestedUnits % BASIC_UNIT;
+	
+		List<Course> requestedCourses = basicCourses.subList(0, courseCount);
+		requestedCourses.addAll(smallCourses.subList(0, remainingUnits));
+
+		new EnrollControl().enroll(bebe, requestedOfferings(requestedCourses));
+		assertTrue(hasTaken(bebe, requestedCourses));
+	}
+
 	@Test
 	public void canTakeCourses() throws EnrollmentRulesViolationException {
 		new EnrollControl().enroll(bebe, requestedOfferings(prerequisitesCourses));
@@ -186,82 +199,27 @@ public class EnrollControlTest {
 
 	@Test
 	public void UnqualifiedStudentCanTakeUnqualifiedMaxUnit() throws EnrollmentRulesViolationException {
-		addBasicTranscript(bebe, EnrollControl.UNQUALIFIED_GPA_BORDER-1, 1, 1, 0);
-
-		int requestedUnits = EnrollControl.UNQUALIFIED_MAX_UNITS;
-		
-		int courseCount = requestedUnits / BASIC_UNIT;
-		int remainingUnits = requestedUnits % BASIC_UNIT;
-	
-		List<Course> requestedCourses = basicCourses.subList(1, 1+courseCount);
-		requestedCourses.addAll(smallCourses.subList(0, remainingUnits));
-
-		new EnrollControl().enroll(bebe, requestedOfferings(requestedCourses));
-		assertTrue(hasTaken(bebe, requestedCourses));
+		checkOfferingWithGivenUnitCountAndGPA(EnrollControl.UNQUALIFIED_MAX_UNITS, EnrollControl.UNQUALIFIED_GPA_BORDER-1);
 	}
 
 	@Test(expected = EnrollmentRulesViolationException.class)
 	public void UnqualifiedStudentCannotTakeMoreThanUnqualifiedMaxUnit() throws EnrollmentRulesViolationException {
-		addBasicTranscript(bebe, EnrollControl.UNQUALIFIED_GPA_BORDER-1, 1, 1, 0);
-
-		int requestedUnits = EnrollControl.UNQUALIFIED_MAX_UNITS + 1;
-		
-		int courseCount = requestedUnits / BASIC_UNIT;
-		int remainingUnits = requestedUnits % BASIC_UNIT;
-	
-		List<Course> requestedCourses = basicCourses.subList(1, 1+courseCount);
-		requestedCourses.addAll(smallCourses.subList(0, remainingUnits));
-
-		new EnrollControl().enroll(bebe, requestedOfferings(requestedCourses));
-		assertTrue(hasTaken(bebe, requestedCourses));
+		checkOfferingWithGivenUnitCountAndGPA(EnrollControl.UNQUALIFIED_MAX_UNITS+1, EnrollControl.UNQUALIFIED_GPA_BORDER-1);
 	}
 
 	@Test
 	public void NormalStudentCanTakeMoreThanUnqualifiedMaxUnit() throws EnrollmentRulesViolationException {
-		addPrerequisitesTranscript(bebe, EnrollControl.UNQUALIFIED_GPA_BORDER, 1, 1, 0);
-
-		int requestedUnits = EnrollControl.UNQUALIFIED_MAX_UNITS + 1;
-		
-		int courseCount = requestedUnits / BASIC_UNIT;
-		int remainingUnits = requestedUnits % BASIC_UNIT;
-	
-		List<Course> requestedCourses = basicCourses.subList(0, courseCount);
-		requestedCourses.addAll(smallCourses.subList(0, remainingUnits));
-
-		new EnrollControl().enroll(bebe, requestedOfferings(requestedCourses));
-		assertTrue(hasTaken(bebe, requestedCourses));
+		checkOfferingWithGivenUnitCountAndGPA(EnrollControl.UNQUALIFIED_MAX_UNITS+1, EnrollControl.UNQUALIFIED_GPA_BORDER);
 	}
 
 	@Test(expected = EnrollmentRulesViolationException.class)
 	public void NormalStudentCannotTakeMoreThanGeneralMaxUnit() throws EnrollmentRulesViolationException {
-		addPrerequisitesTranscript(bebe, EnrollControl.PRIVILEGED_GPA_BORDER-1, 1, 1, 0);
-
-		int requestedUnits = EnrollControl.GENERAL_MAX_UNITS + 1;
-		
-		int courseCount = requestedUnits / BASIC_UNIT;
-		int remainingUnits = requestedUnits % BASIC_UNIT;
-	
-		List<Course> requestedCourses = basicCourses.subList(1, 1+courseCount);
-		requestedCourses.addAll(smallCourses.subList(0, remainingUnits));
-
-		new EnrollControl().enroll(bebe, requestedOfferings(requestedCourses));
-		assertTrue(hasTaken(bebe, requestedCourses));
+		checkOfferingWithGivenUnitCountAndGPA(EnrollControl.GENERAL_MAX_UNITS+1, EnrollControl.PRIVILEGED_GPA_BORDER-1);
 	}
 
 	@Test
 	public void PrivilegedStudentCanTakeMaxUnits() throws EnrollmentRulesViolationException {
-		addPrerequisitesTranscript(bebe, EnrollControl.PRIVILEGED_GPA_BORDER, 1, 1, 0);
-
-		int requestedUnits = EnrollControl.PRIVILEGED_MAX_UNITS;
-		
-		int courseCount = requestedUnits / BASIC_UNIT;
-		int remainingUnits = requestedUnits % BASIC_UNIT;
-	
-		List<Course> requestedCourses = basicCourses.subList(0, courseCount);
-		requestedCourses.addAll(smallCourses.subList(0, remainingUnits));
-
-		new EnrollControl().enroll(bebe, requestedOfferings(requestedCourses));
-		assertTrue(hasTaken(bebe, requestedCourses));
+		checkOfferingWithGivenUnitCountAndGPA(EnrollControl.PRIVILEGED_MAX_UNITS, EnrollControl.PRIVILEGED_GPA_BORDER);
 	}
 
 	@Test(expected = EnrollmentRulesViolationException.class)
