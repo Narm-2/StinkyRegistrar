@@ -21,9 +21,9 @@ public class EnrollControl {
         for (Offering o : offerings)
             unitsRequested += o.getCourse().getUnits();
         double gpa = s.getGPA();
-        if ((gpa < 12 && unitsRequested > 14) ||
-                (gpa < 16 && unitsRequested > 16) ||
-                (unitsRequested > 20))
+        if (checkUnitLimitationUnqualified(gpa, unitsRequested) ||
+            checkUnitLimitationPrivileged(gpa, unitsRequested) ||
+            checkUnitLimitationMaxUnits(unitsRequested))
             throw new EnrollmentRulesViolationException(String.format("Number of units (%d) requested does not match GPA of %f", unitsRequested, gpa));
     }
 
@@ -76,5 +76,17 @@ public class EnrollControl {
                 throw new EnrollmentRulesViolationException(String.format("The student has not passed %s as a prerequisite of %s", pre.getName(), o.getCourse().getName()));
             }
         }
+    }
+
+    private boolean checkUnitLimitationUnqualified(double gpa, int unitsRequested) {
+        return (gpa < 12 && unitsRequested > 14);
+    }
+
+    private boolean checkUnitLimitationPrivileged(double gpa, int unitsRequested) {
+        return (gpa < 16 && unitsRequested > 16);
+    }
+
+    private boolean checkUnitLimitationMaxUnits(int unitsRequested) {
+        return (unitsRequested > 20);
     }
 }
